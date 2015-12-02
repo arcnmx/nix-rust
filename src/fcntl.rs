@@ -1,6 +1,6 @@
 use NixString;
 use errno::{Errno, Result};
-use libc::{mode_t, c_int};
+use libc::{c_uint, c_int};
 use sys::stat::Mode;
 use std::os::unix::io::RawFd;
 
@@ -99,7 +99,7 @@ mod ffi {
 
 pub fn open<P: NixString>(path: P, oflag: OFlag, mode: Mode) -> Result<RawFd> {
     let fd = unsafe {
-        ffi::open(path.as_ref().as_ptr(), oflag.bits(), mode.bits() as mode_t)
+        ffi::open(path.as_ref().as_ptr(), oflag.bits(), mode.bits() as c_uint)
     };
 
     Errno::result(fd)
