@@ -27,6 +27,7 @@ bitflags!(
         const MS_KERNMOUNT   = 1 << 22,
         const MS_I_VERSION   = 1 << 23,
         const MS_STRICTATIME = 1 << 24,
+        const MS_LAZYTIME    = 1 << 25, // Linux 4.0
         const MS_NOSEC       = 1 << 28,
         const MS_BORN        = 1 << 29,
         const MS_ACTIVE      = 1 << 30,
@@ -49,18 +50,15 @@ bitflags!(
 );
 
 mod ffi {
-    use libc::{c_char, c_int};
+    use libc::{c_void, c_char, c_int, c_ulong};
 
     extern {
-        /*
-         * TODO: Bring back
         pub fn mount(
                 source: *const c_char,
                 target: *const c_char,
                 fstype: *const c_char,
                 flags: c_ulong,
                 data: *const c_void) -> c_int;
-                */
 
         pub fn umount(target: *const c_char) -> c_int;
 
@@ -68,15 +66,12 @@ mod ffi {
     }
 }
 
-/*
- * TODO: Bring this back with a test
- *
 pub fn mount<P1: ?Sized + NixPath, P2: ?Sized + NixPath, P3: ?Sized + NixPath, P4: ?Sized + NixPath>(
-        source: Option<&P1>,
-        target: P2,
-        fstype: Option<&P3>,
+        source: &P1,
+        target: &P2,
+        fstype: &P3,
         flags: MsFlags,
-        data: Option<&P4>) -> Result<()> {
+        data: &P4) -> Result<()> {
     use libc;
 
     let res = try!(try!(try!(try!(
@@ -85,11 +80,11 @@ pub fn mount<P1: ?Sized + NixPath, P2: ?Sized + NixPath, P3: ?Sized + NixPath, P
                 fstype.with_nix_path(|fstype| {
                     data.with_nix_path(|data| {
                         unsafe {
-                            ffi::mount(source.as_ext_str(),
-                                       target.as_ext_str(),
-                                       fstype,
+                            ffi::mount(source.as_ptr(),
+                                       target.as_ptr(),
+                                       fstype.as_ptr(),
                                        flags.bits,
-                                       data as *const libc::c_void)
+                                       data.as_ptr() as *const libc::c_void)
                         }
                     })
                 })
@@ -98,7 +93,6 @@ pub fn mount<P1: ?Sized + NixPath, P2: ?Sized + NixPath, P3: ?Sized + NixPath, P
 
     return from_ffi(res);
 }
-*/
 
 pub fn umount<P: ?Sized + NixPath>(target: &P) -> Result<()> {
     let res = try!(target.with_nix_path(|cstr| {

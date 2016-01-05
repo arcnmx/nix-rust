@@ -4,7 +4,7 @@ use {Error, Result, NixPath, from_ffi};
 use errno::Errno;
 use fcntl::{fcntl, OFlag, O_NONBLOCK, O_CLOEXEC, FD_CLOEXEC};
 use fcntl::FcntlArg::{F_SETFD, F_SETFL};
-use libc::{c_char, c_void, c_int, size_t, pid_t, off_t};
+use libc::{c_char, c_void, c_int, size_t, pid_t, off_t, gid_t, uid_t};
 use std::mem;
 use std::ffi::CString;
 use std::os::unix::io::RawFd;
@@ -13,8 +13,8 @@ use std::os::unix::io::RawFd;
 pub use self::linux::*;
 
 mod ffi {
-    use libc::{c_char, c_int, size_t};
-    pub use libc::{close, read, write, pipe, ftruncate, unlink, setpgid};
+    use libc::{c_char, c_int, size_t, gid_t};
+    pub use libc::{close, read, write, pipe, ftruncate, unlink, setpgid, setgid, setuid};
     pub use libc::funcs::posix88::unistd::{fork, getpid, getppid};
 
     extern {
@@ -56,6 +56,8 @@ mod ffi {
         // gets the hostname
         // doc: http://man7.org/linux/man-pages/man2/sethostname.2.html
         pub fn sethostname(name: *const c_char, len: size_t) -> c_int;
+
+        pub fn setgroups(size: size_t, list: *const gid_t) -> c_int;
 
         // change root directory
         // doc: http://man7.org/linux/man-pages/man2/chroot.2.html
@@ -387,6 +389,27 @@ pub fn fdatasync(fd: RawFd) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[inline]
+pub fn setgid(gid: gid_t) -> Result<()> {
+    let res = unsafe { ffi::setgid(gid) };
+
+    from_ffi(res)
+}
+
+#[inline]
+pub fn setuid(uid: uid_t) -> Result<()> {
+    let res = unsafe { ffi::setuid(uid) };
+
+    from_ffi(res)
+}
+
+#[inline]
+pub fn setgroups(list: &[gid_t]) -> Result<()> {
+    let res = unsafe { ffi::setgroups(list.len() as size_t, list.as_ptr()) };
+
+    from_ffi(res)
 }
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
