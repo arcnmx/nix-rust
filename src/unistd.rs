@@ -4,7 +4,7 @@ use NixString;
 use errno::{Errno, Result};
 use fcntl::{fcntl, OFlag, O_NONBLOCK, O_CLOEXEC, FD_CLOEXEC};
 use fcntl::FcntlArg::{F_SETFD, F_SETFL};
-use libc::{c_char, c_void, c_int, size_t, pid_t, off_t};
+use libc::{c_char, c_void, c_int, size_t, pid_t, off_t, gid_t, uid_t};
 use std::mem;
 use std::ffi::CString;
 use std::os::unix::io::RawFd;
@@ -13,8 +13,8 @@ use std::os::unix::io::RawFd;
 pub use self::linux::*;
 
 mod ffi {
-    use libc::{c_char, c_int, size_t};
-    pub use libc::{close, read, write, pipe, ftruncate, unlink, setpgid};
+    use libc::{c_char, c_int, size_t, gid_t};
+    pub use libc::{close, read, write, pipe, ftruncate, unlink, setpgid, setgid, setuid};
     pub use libc::funcs::posix88::unistd::{fork, getpid, getppid};
 
     extern {
@@ -56,6 +56,14 @@ mod ffi {
         // gets the hostname
         // doc: http://man7.org/linux/man-pages/man2/sethostname.2.html
         pub fn sethostname(name: *const c_char, len: size_t) -> c_int;
+
+        // get list of supplementary group IDs
+        // doc: http://man7.org/linux/man-pages/man2/getgroups.2.html
+        pub fn getgroups(size: c_int, list: *mut gid_t) -> c_int;
+
+        // set list of supplementary group IDs
+        // doc: http://man7.org/linux/man-pages/man2/getgroups.2.html
+        pub fn setgroups(size: size_t, list: *const gid_t) -> c_int;
 
         // change root directory
         // doc: http://man7.org/linux/man-pages/man2/chroot.2.html
@@ -338,6 +346,35 @@ pub fn fsync(fd: RawFd) -> Result<()> {
 #[inline]
 pub fn fdatasync(fd: RawFd) -> Result<()> {
     let res = unsafe { ffi::fdatasync(fd) };
+
+    Errno::result(res).map(drop)
+}
+
+
+#[inline]
+pub fn setgid(gid: gid_t) -> Result<()> {
+    let res = unsafe { ffi::setgid(gid) };
+
+    Errno::result(res).map(drop)
+}
+
+#[inline]
+pub fn setuid(uid: uid_t) -> Result<()> {
+    let res = unsafe { ffi::setuid(uid) };
+
+    Errno::result(res).map(drop)
+}
+
+#[inline]
+pub fn getgroups(list: &mut [gid_t]) -> Result<()> {
+    let res = unsafe { ffi::getgroups(list.len() as c_int, list.as_mut_ptr()) };
+
+    Errno::result(res).map(drop)
+}
+
+#[inline]
+pub fn setgroups(list: &[gid_t]) -> Result<()> {
+    let res = unsafe { ffi::setgroups(list.len() as size_t, list.as_ptr()) };
 
     Errno::result(res).map(drop)
 }
