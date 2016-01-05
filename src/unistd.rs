@@ -8,6 +8,7 @@ use libc::{c_char, c_void, c_int, size_t, pid_t, off_t, gid_t, uid_t};
 use std::mem;
 use std::ffi::CString;
 use std::os::unix::io::RawFd;
+use void::Void;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub use self::linux::*;
@@ -177,7 +178,7 @@ fn to_exec_array(args: &[CString]) -> Vec<*const c_char> {
 }
 
 #[inline]
-pub fn execv<P: NixString>(path: P, argv: &[CString]) -> Result<()> {
+pub fn execv<P: NixString>(path: P, argv: &[CString]) -> Result<Void> {
     let args_p = to_exec_array(argv);
 
     unsafe {
@@ -188,7 +189,7 @@ pub fn execv<P: NixString>(path: P, argv: &[CString]) -> Result<()> {
 }
 
 #[inline]
-pub fn execve<P: NixString>(path: P, args: &[CString], env: &[CString]) -> Result<()> {
+pub fn execve<P: NixString>(path: P, args: &[CString], env: &[CString]) -> Result<Void> {
     let args_p = to_exec_array(args);
     let env_p = to_exec_array(env);
 
@@ -200,7 +201,7 @@ pub fn execve<P: NixString>(path: P, args: &[CString], env: &[CString]) -> Resul
 }
 
 #[inline]
-pub fn execvp(filename: &CString, args: &[CString]) -> Result<()> {
+pub fn execvp(filename: &CString, args: &[CString]) -> Result<Void> {
     let args_p = to_exec_array(args);
 
     unsafe {
@@ -399,7 +400,7 @@ mod linux {
 
     #[inline]
     #[cfg(feature = "execvpe")]
-    pub fn execvpe<F: NixString>(filename: F, args: &[CString], env: &[CString]) -> Result<()> {
+    pub fn execvpe<F: NixString>(filename: F, args: &[CString], env: &[CString]) -> Result<Void> {
         use std::ptr;
         use libc::c_char;
 

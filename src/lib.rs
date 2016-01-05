@@ -14,6 +14,7 @@
 extern crate bitflags;
 
 extern crate libc;
+extern crate void;
 
 #[cfg(test)]
 extern crate nix_test as nixtest;
