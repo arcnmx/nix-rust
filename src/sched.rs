@@ -1,4 +1,5 @@
 use std::mem;
+use std::os::unix::io::RawFd;
 use libc::{c_int, c_uint, c_void, c_ulong, pid_t};
 use errno::{Errno, Result};
 
@@ -137,6 +138,10 @@ mod ffi {
         // doc: http://man7.org/linux/man-pages/man2/unshare.2.html
         pub fn unshare(flags: super::CloneFlags) -> c_int;
 
+        // reassociate thread with a namespace
+        // doc: http://man7.org/linux/man-pages/man2/setns.2.html
+        pub fn setns(fd: c_int, nstype: super::CloneFlags) -> c_int;
+
         // Set the current CPU set that a task is allowed to run on
         pub fn sched_setaffinity(__pid: pid_t, __cpusetsize: size_t, __cpuset: *const CpuSet) -> c_int;
     }
@@ -168,6 +173,12 @@ pub fn clone(mut cb: CloneCb, stack: &mut [u8], flags: CloneFlags) -> Result<pid
 
 pub fn unshare(flags: CloneFlags) -> Result<()> {
     let res = unsafe { ffi::unshare(flags) };
+
+    Errno::result(res).map(drop)
+}
+
+pub fn setns(fd: RawFd, nstype: CloneFlags) -> Result<()> {
+    let res = unsafe { ffi::setns(fd, nstype) };
 
     Errno::result(res).map(drop)
 }
