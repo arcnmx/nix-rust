@@ -28,6 +28,7 @@ bitflags!(
         const MS_KERNMOUNT   = 1 << 22,
         const MS_I_VERSION   = 1 << 23,
         const MS_STRICTATIME = 1 << 24,
+        const MS_LAZYTIME    = 1 << 25, // Linux 4.0
         const MS_NOSEC       = 1 << 28,
         const MS_BORN        = 1 << 29,
         const MS_ACTIVE      = 1 << 30,
@@ -66,9 +67,6 @@ mod ffi {
     }
 }
 
-/*
- * TODO: Bring this back with a test
- *
 pub fn mount<P1: NixString, P2: NixString, P3: NixString, P4: NixString>(
         source: Option<P1>,
         target: P2,
@@ -91,7 +89,7 @@ pub fn mount<P1: NixString, P2: NixString, P3: NixString, P4: NixString>(
     };
 
     Errno::result(res).map(drop)
-}*/
+}
 
 pub fn umount<P: NixString>(target: P) -> Result<()> {
     let res = unsafe {
