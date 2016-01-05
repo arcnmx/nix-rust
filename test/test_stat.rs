@@ -1,6 +1,8 @@
 use std::fs::File;
 use std::os::unix::fs::symlink;
+use std::os::unix::ffi::OsStrExt;
 use std::os::unix::prelude::AsRawFd;
+use std::ffi::CString;
 
 use libc::{S_IFMT, S_IFLNK};
 
@@ -67,7 +69,7 @@ fn test_stat_and_fstat() {
     let filename = tempdir.path().join("foo.txt");
     let file = File::create(&filename).unwrap();
 
-    let stat_result = stat(&filename);
+    let stat_result = stat(CString::new(filename.as_os_str().as_bytes()).unwrap());
     assert_stat_results(stat_result);
 
     let fstat_result = fstat(file.as_raw_fd());
@@ -86,10 +88,10 @@ fn test_stat_fstat_lstat() {
 
     // should be the same result as calling stat,
     // since it's a regular file
-    let stat_result = lstat(&filename);
+    let stat_result = lstat(CString::new(filename.as_os_str().as_bytes()).unwrap());
     assert_stat_results(stat_result);
 
-    let lstat_result = lstat(&linkname);
+    let lstat_result = lstat(CString::new(linkname.as_os_str().as_bytes()).unwrap());
     assert_lstat_results(lstat_result);
 
     let fstat_result = fstat(link.as_raw_fd());

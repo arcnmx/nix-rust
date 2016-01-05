@@ -2,8 +2,8 @@
 //!
 //! See the `vfs::Statvfs` struct for some rusty wrappers
 
-use {Result, NixPath, from_ffi};
-use errno::Errno;
+use NixString;
+use errno::{Errno, Result};
 use std::os::unix::io::AsRawFd;
 
 pub mod vfs {
@@ -14,7 +14,7 @@ pub mod vfs {
 
     use libc::{c_ulong,c_int};
     use std::os::unix::io::AsRawFd;
-    use {Result, NixPath};
+    use {Result, NixString};
 
     use super::{statvfs, fstatvfs};
 
@@ -85,14 +85,14 @@ pub mod vfs {
     impl Statvfs {
         /// Create a new `Statvfs` object and fill it with information about
         /// the mount that contains `path`
-        pub fn for_path<P: ?Sized + NixPath>(path: &P) -> Result<Statvfs> {
+        pub fn for_path<P: NixString>(path: P) -> Result<Statvfs> {
             let mut stat = Statvfs::default();
             let res = statvfs(path, &mut stat);
             res.map(|_| stat)
         }
 
         /// Replace information in this struct with information about `path`
-        pub fn update_with_path<P: ?Sized + NixPath>(&mut self, path: &P) -> Result<()> {
+        pub fn update_with_path<P: NixString>(&mut self, path: P) -> Result<()> {
             statvfs(path, self)
         }
 
@@ -141,13 +141,11 @@ mod ffi {
 }
 
 /// Fill an existing `Statvfs` object with information about the `path`
-pub fn statvfs<P: ?Sized + NixPath>(path: &P, stat: &mut vfs::Statvfs) -> Result<()> {
+pub fn statvfs<P: NixString>(path: P, stat: &mut vfs::Statvfs) -> Result<()> {
     unsafe {
         Errno::clear();
-        let res = try!(
-            path.with_nix_path(|path| ffi::statvfs(path.as_ptr(), stat))
-        );
-        from_ffi(res)
+        let res = ffi::statvfs(path.as_ref().as_ptr(), stat);
+        Errno::result(res).map(drop)
     }
 }
 
@@ -155,7 +153,7 @@ pub fn statvfs<P: ?Sized + NixPath>(path: &P, stat: &mut vfs::Statvfs) -> Result
 pub fn fstatvfs<T: AsRawFd>(fd: &T, stat: &mut vfs::Statvfs) -> Result<()> {
     unsafe {
         Errno::clear();
-        from_ffi(ffi::fstatvfs(fd.as_raw_fd(), stat))
+        Errno::result(ffi::fstatvfs(fd.as_raw_fd(), stat)).map(drop)
     }
 }
 
@@ -167,7 +165,7 @@ mod test {
     #[test]
     fn statvfs_call() {
         let mut stat = vfs::Statvfs::default();
-        statvfs("/".as_bytes(), &mut stat).unwrap()
+        statvfs(cstr!("/"), &mut stat).unwrap()
     }
 
     #[test]

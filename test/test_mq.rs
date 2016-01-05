@@ -12,7 +12,6 @@ use nix::unistd::{fork, read, write, pipe};
 use nix::unistd::Fork::{Child, Parent};
 use nix::sys::wait::*;
 use nix::errno::Errno::*;
-use nix::Error::Sys;
 
 #[test]
 fn test_mq_send_and_receive() {
@@ -118,10 +117,10 @@ fn test_mq_unlink() {
     assert!(res_unlink == Ok(()) );
 
     let res_unlink_not_opened = mq_unlink(mq_name_not_opened);
-    assert!(res_unlink_not_opened == Err(Sys(ENOENT)) );
+    assert!(res_unlink_not_opened == Err(ENOENT) );
 
     mq_close(mqd).unwrap();
     let res_unlink_after_close = mq_unlink(mq_name_opened);
-    assert!(res_unlink_after_close == Err(Sys(ENOENT)) );
+    assert!(res_unlink_after_close == Err(ENOENT) );
 
 }
