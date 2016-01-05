@@ -1,7 +1,6 @@
 use std::mem;
 use libc::{c_int, c_uint, c_void, c_ulong, pid_t};
-use errno::Errno;
-use {Result, Error};
+use errno::{Errno, Result};
 
 pub type CloneFlags = c_uint;
 
@@ -150,11 +149,7 @@ pub fn sched_setaffinity(pid: isize, cpuset: &CpuSet) -> Result<()> {
         ffi::sched_setaffinity(pid as pid_t, mem::size_of::<CpuSet>() as size_t, mem::transmute(cpuset))
     };
 
-    if res != 0 {
-        Err(Error::Sys(Errno::last()))
-    } else {
-        Ok(())
-    }
+    Errno::result(res).map(drop)
 }
 
 pub fn clone(mut cb: CloneCb, stack: &mut [u8], flags: CloneFlags) -> Result<pid_t> {
@@ -168,19 +163,11 @@ pub fn clone(mut cb: CloneCb, stack: &mut [u8], flags: CloneFlags) -> Result<pid
         ffi::clone(mem::transmute(callback), ptr as *mut c_void, flags, &mut cb)
     };
 
-    if res < 0 {
-        return Err(Error::Sys(Errno::last()));
-    }
-
-    Ok(res)
+    Errno::result(res)
 }
 
 pub fn unshare(flags: CloneFlags) -> Result<()> {
     let res = unsafe { ffi::unshare(flags) };
 
-    if res != 0 {
-        return Err(Error::Sys(Errno::last()));
-    }
-
-    Ok(())
+    Errno::result(res).map(drop)
 }

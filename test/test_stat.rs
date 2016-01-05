@@ -61,7 +61,7 @@ fn assert_lstat_results(stat_result: Result<FileStat>) {
 
 #[test]
 fn test_stat_and_fstat() {
-    let filename = b"target/foo.txt".as_ref();
+    let filename = cstr!("target/foo.txt");
     let fd = open(filename, O_CREAT, S_IWUSR).unwrap();  // create empty file
 
     let stat_result = stat(filename);
@@ -76,11 +76,11 @@ fn test_stat_and_fstat() {
 
 #[test]
 fn test_stat_fstat_lstat() {
-    let filename = b"target/bar.txt".as_ref();
-    let linkname = b"target/barlink".as_ref();
+    let filename = cstr!("target/bar.txt");
+    let linkname = cstr!("target/barlink");
 
     open(filename, O_CREAT, S_IWUSR | S_IRUSR).unwrap();  // create empty file
-    fs::soft_link("bar.txt", str::from_utf8(linkname).unwrap()).unwrap();
+    fs::soft_link("bar.txt", str::from_utf8(linkname.to_bytes()).unwrap()).unwrap();
     let fd = open(linkname, O_RDONLY, S_IRUSR).unwrap();
 
     // should be the same result as calling stat,

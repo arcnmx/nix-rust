@@ -1,4 +1,5 @@
 use libc::c_int;
+use std::{fmt, io, error};
 
 pub use self::consts::*;
 pub use self::consts::Errno::*;
@@ -52,27 +53,63 @@ pub fn errno() -> i32 {
     }
 }
 
-macro_rules! impl_errno {
-    ($errno:ty) => {
-        impl $errno {
-            pub fn last() -> Errno {
-                super::last()
-            }
+impl Errno {
+    pub fn last() -> Self {
+        last()
+    }
 
-            pub fn desc(self) -> &'static str {
-                super::desc(self)
-            }
+    pub fn desc(self) -> &'static str {
+        desc(self)
+    }
 
-            pub fn from_i32(err: i32) -> Errno {
-                from_i32(err)
-            }
+    pub fn from_i32(err: i32) -> Errno {
+        from_i32(err)
+    }
 
-            pub unsafe fn clear() -> () {
-                super::clear()
-            }
+    pub unsafe fn clear() -> () {
+        clear()
+    }
+
+    pub fn result<S: ErrnoSentinel + PartialEq<S>>(value: S) -> Result<S> {
+        if value == S::sentinel() {
+            Err(Self::last())
+        } else {
+            Ok(value)
         }
     }
 }
+
+pub trait ErrnoSentinel: Sized {
+    fn sentinel() -> Self;
+}
+
+impl ErrnoSentinel for i32 {
+    fn sentinel() -> Self { -1 }
+}
+
+impl ErrnoSentinel for i64 {
+    fn sentinel() -> Self { -1 }
+}
+
+impl error::Error for Errno {
+    fn description(&self) -> &str {
+        self.desc()
+    }
+}
+
+impl fmt::Display for Errno {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}: {}", self, self.desc())
+    }
+}
+
+impl From<Errno> for io::Error {
+    fn from(err: Errno) -> Self {
+        io::Error::from_raw_os_error(err as i32)
+    }
+}
+
+pub type Result<T> = ::std::result::Result<T, Errno>;
 
 fn last() -> Errno {
     Errno::from_i32(errno())
@@ -618,8 +655,6 @@ mod consts {
         EHWPOISON       = 133,
     }
 
-    impl_errno!(Errno);
-
     pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
     pub const EDEADLOCK:   Errno = Errno::EDEADLK;
 
@@ -880,8 +915,6 @@ mod consts {
         EQFULL          = 106,
     }
 
-    impl_errno!(Errno);
-
     pub const ELAST: Errno       = Errno::EQFULL;
     pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
     pub const EDEADLOCK:   Errno = Errno::EDEADLK;
@@ -1108,8 +1141,6 @@ mod consts {
 
     }
 
-    impl_errno!(Errno);
-
     pub const ELAST: Errno       = Errno::EOWNERDEAD;
     pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
     pub const EDEADLOCK:   Errno = Errno::EDEADLK;
@@ -1330,8 +1361,6 @@ mod consts {
         EASYNC          = 99,
     }
 
-    impl_errno!(Errno);
-
     pub const ELAST: Errno       = Errno::EASYNC;
     pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
     pub const EDEADLOCK:   Errno = Errno::EDEADLK;
@@ -1547,8 +1576,6 @@ mod consts {
         ENOTSUP         = 91,
     }
 
-    impl_errno!(Errno);
-
     pub const ELAST: Errno       = Errno::ENOTSUP;
     pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
 
@@ -1757,8 +1784,6 @@ mod consts {
         ENOLINK		= 95,
         EPROTO		= 96,
     }
-
-    impl_errno!(Errno);
 
     pub const ELAST: Errno       = Errno::ENOTSUP;
     pub const EWOULDBLOCK: Errno = Errno::EAGAIN;
