@@ -6,6 +6,7 @@ use std::ops::{Deref, DerefMut};
 use std::os::raw::c_char;
 use NixString;
 
+#[derive(Debug)]
 pub struct NullTerminatedSlice<T> {
     inner: [Option<T>],
 }
@@ -84,6 +85,7 @@ impl<T> DerefMut for NullTerminatedSlice<T> {
     }
 }
 
+#[derive(Debug)]
 pub struct NullTerminatedArray<T> {
     inner: Box<[Option<T>]>,
 }
@@ -156,9 +158,16 @@ impl<T> Borrow<NullTerminatedSlice<T>> for NullTerminatedArray<T> {
     }
 }
 
+#[derive(Debug)]
 pub struct NullTerminatedVec<T, U> {
     inner: Box<[T]>,
     null: NullTerminatedArray<U>,
+}
+
+impl<'a, C: Clone + CMapping + 'a> Clone for NullTerminatedVec<C, &'a C::Target> {
+    fn clone(&self) -> Self {
+        NullTerminatedVec::map_from(self.inner.iter().cloned().collect::<Vec<_>>())
+    }
 }
 
 impl<T, U> NullTerminatedVec<T, U> {
