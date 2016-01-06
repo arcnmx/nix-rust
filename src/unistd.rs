@@ -6,12 +6,13 @@ use fcntl::{fcntl, OFlag, O_NONBLOCK, O_CLOEXEC, FD_CLOEXEC};
 use fcntl::FcntlArg::{F_SETFD, F_SETFL};
 use libc::{c_char, c_void, c_int, size_t, pid_t, off_t, gid_t, uid_t};
 use std::mem;
-use std::ffi::CString;
 use std::os::unix::io::RawFd;
 use void::Void;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub use self::linux::*;
+
+pub type CStrArray<'a> = ::null_terminated::NullTerminatedSlice<&'a c_char>;
 
 mod ffi {
     use libc::{c_char, c_int, size_t, gid_t};
@@ -167,45 +168,28 @@ pub fn chdir<P: NixString>(path: P) -> Result<()> {
     Errno::result(res).map(drop)
 }
 
-// TODO: do this without allocations
-fn to_exec_array(args: &[CString]) -> Vec<*const c_char> {
-    use std::ptr;
-    use libc::c_char;
-
-    let mut args_p: Vec<*const c_char> = args.iter().map(|s| s.as_ptr()).collect();
-    args_p.push(ptr::null());
-    args_p
-}
-
 #[inline]
-pub fn execv<P: NixString>(path: P, argv: &[CString]) -> Result<Void> {
-    let args_p = to_exec_array(argv);
-
+pub fn execv<'a, P: NixString, A: AsRef<CStrArray<'a>>>(path: P, argv: A) -> Result<Void> {
     unsafe {
-        ffi::execv(path.as_ref().as_ptr(), args_p.as_ptr())
+        ffi::execv(path.as_ref().as_ptr(), argv.as_ref().as_ptr())
     };
 
     Err(Errno::last())
 }
 
 #[inline]
-pub fn execve<P: NixString>(path: P, args: &[CString], env: &[CString]) -> Result<Void> {
-    let args_p = to_exec_array(args);
-    let env_p = to_exec_array(env);
-
+pub fn execve<'aa, 'ae, P: NixString, AA: AsRef<CStrArray<'aa>>, AE: AsRef<CStrArray<'ae>>>(path: P, args: AA, env: AE) -> Result<Void> {
     unsafe {
-        ffi::execve(path.as_ref().as_ptr(), args_p.as_ptr(), env_p.as_ptr())
+        ffi::execve(path.as_ref().as_ptr(), args.as_ref().as_ptr(), env.as_ref().as_ptr())
     };
 
     Err(Errno::last())
 }
 
 #[inline]
-pub fn execvp(filename: &CString, args: &[CString]) -> Result<Void> {
-    let args_p = to_exec_array(args);
-
+pub fn execvp<'a, P: NixString, A: AsRef<CStrArray<'a>>>(filename: P, args: A) -> Result<Void> {
     unsafe {
-        ffi::execvp(filename.as_ptr(), args_p.as_ptr())
+        ffi::execvp(filename.as_ref().as_ptr(), args.as_ref().as_ptr())
     };
 
     Err(Errno::last())
@@ -387,7 +371,9 @@ mod linux {
     use errno::{Errno, Result};
 
     #[cfg(feature = "execvpe")]
-    use std::ffi::CString;
+    use super::CStrArray;
+    #[cfg(feature = "execvpe")]
+    use void::Void;
 
     pub fn pivot_root<P1: NixString, P2: NixString>(
             new_root: P1, put_old: P2) -> Result<()> {
@@ -400,18 +386,9 @@ mod linux {
 
     #[inline]
     #[cfg(feature = "execvpe")]
-    pub fn execvpe<F: NixString>(filename: F, args: &[CString], env: &[CString]) -> Result<Void> {
-        use std::ptr;
-        use libc::c_char;
-
-        let mut args_p: Vec<*const c_char> = args.iter().map(|s| s.as_ptr()).collect();
-        args_p.push(ptr::null());
-
-        let mut env_p: Vec<*const c_char> = env.iter().map(|s| s.as_ptr()).collect();
-        env_p.push(ptr::null());
-
+    pub fn execvpe<'aa, 'ae, F: NixString, AA: AsRef<CStrArray<'aa>>, AE: AsRef<CStrArray<'ae>>>(filename: F, args: AA, env: AE) -> Result<Void> {
         unsafe {
-            super::ffi::execvpe(filename.as_ref().as_ptr(), args_p.as_ptr(), env_p.as_ptr())
+            super::ffi::execvpe(filename.as_ref().as_ptr(), args.as_ref().as_ptr(), env.as_ref().as_ptr())
         };
 
         Err(Errno::last())

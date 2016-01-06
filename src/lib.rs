@@ -27,6 +27,8 @@ pub use nix_string::NixString;
 #[macro_use]
 mod nix_string;
 
+pub mod null_terminated;
+
 pub mod errno;
 pub mod features;
 pub mod fcntl;
