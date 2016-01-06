@@ -20,7 +20,7 @@ preadv_pwritev = []
 signalfd = []
 
 [dependencies]
-libc     = "^0.1.12"
+libc     = "^0.2.4"
 bitflags = "^0.3.3"
 void     = "^0.0.5"
 

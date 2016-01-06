@@ -6,7 +6,7 @@ use errno::{Errno, Result};
 use std::mem;
 use std::ptr;
 
-pub use libc::consts::os::posix88::{
+pub use libc::{
     SIGHUP,   // 1
     SIGINT,   // 2
     SIGQUIT,  // 3

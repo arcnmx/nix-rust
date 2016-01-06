@@ -83,6 +83,10 @@ pub trait ErrnoSentinel: Sized {
     fn sentinel() -> Self;
 }
 
+impl ErrnoSentinel for isize {
+    fn sentinel() -> Self { -1 }
+}
+
 impl ErrnoSentinel for i32 {
     fn sentinel() -> Self { -1 }
 }
