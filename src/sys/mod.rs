@@ -1,3 +1,5 @@
+#[cfg(any(target_os = "linux", target_os = "android"))]
+pub mod capability;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
 pub mod epoll;
