@@ -1,4 +1,5 @@
 use std::ffi::{CStr, CString};
+use std::borrow::Cow;
 
 // TODO: Replace this with AsRef<CStr> once Rust 1.7.0 lands.
 pub trait NixString {
@@ -26,6 +27,12 @@ impl<'a, T: ?Sized + NixString> NixString for &'a T {
 impl<'a, T: ?Sized + NixString> NixString for &'a mut T {
     fn as_ref(&self) -> &CStr {
         NixString::as_ref(*self)
+    }
+}
+
+impl<'a> NixString for Cow<'a, CStr> {
+    fn as_ref(&self) -> &CStr {
+        self
     }
 }
 
