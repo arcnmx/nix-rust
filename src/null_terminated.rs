@@ -85,7 +85,7 @@ impl<T> DerefMut for NullTerminatedSlice<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NullTerminatedArray<T> {
     inner: Box<[Option<T>]>,
 }
