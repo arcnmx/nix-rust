@@ -6,6 +6,7 @@ version     = "0.5.0-pre"
 authors     = ["Carl Lerche <me@carllerche.com>"]
 homepage    = "https://github.com/carllerche/nix-rust"
 license     = "MIT"
+build       = "build.rs"
 exclude     = [
   ".gitignore",
   ".travis.yml",
@@ -16,15 +17,19 @@ exclude     = [
 [features]
 eventfd = []
 execvpe = []
+nixstring = []
 preadv_pwritev = []
 signalfd = []
 
 [dependencies]
-libc     = "^0.2.4"
-bitflags = "^0.3.3"
+libc = "^0.2.5"
+bitflags = "^0.4.0"
+
+[build-dependencies]
+rustc_version = "^0.1.6"
 
 [dev-dependencies]
-rand    = "^0.3.13"
+rand = "^0.3.13"
 tempdir = "^0.3.4"
 
 [dev-dependencies.nix-test]
