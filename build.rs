@@ -7,6 +7,6 @@ fn main() {
 	}
 
 	if version_matches("< 1.7.0") {
-        println!("cargo:rustc-cfg=feature=nixstring");
+        println!("cargo:rustc-cfg=feature=\"nixstring\"");
 	}
 }
