@@ -42,18 +42,18 @@ mod imp {
 			NixString::as_ref(*self)
 		}
 	}
-
-	#[macro_export]
-	macro_rules! cstr {
-		($s:expr) => {
-			unsafe { ::std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr() as *const _) }
-		}
-	}
 }
 
 #[cfg(not(feature = "nixstring"))]
 impl<T: AsRef<CStr>> NixString for T {
 	fn as_ref(&self) -> &CStr {
 		return AsRef::as_ref(self)
+	}
+}
+
+#[macro_export]
+macro_rules! cstr {
+	($s:expr) => {
+		unsafe { ::std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr() as *const _) }
 	}
 }
