@@ -1,11 +1,12 @@
 //! Standard symbolic constants and types
 //!
 use {Errno, Error, Result, NixPath};
+use null_terminated::BorrowNullTerminatedSlice;
 use fcntl::{fcntl, OFlag, O_NONBLOCK, O_CLOEXEC, FD_CLOEXEC};
 use fcntl::FcntlArg::{F_SETFD, F_SETFL};
 use libc::{self, c_char, c_void, c_int, c_uint, size_t, pid_t, off_t, uid_t, gid_t};
 use std::mem;
-use std::ffi::CString;
+use std::ffi::CStr;
 use std::os::unix::io::RawFd;
 use void::Void;
 
@@ -121,47 +122,39 @@ pub fn chown<P: ?Sized + NixPath>(path: &P, owner: Option<uid_t>, group: Option<
     Errno::result(res).map(drop)
 }
 
-fn to_exec_array(args: &[CString]) -> Vec<*const c_char> {
-    use std::ptr;
-    use libc::c_char;
+#[inline]
+pub fn execv<A: BorrowNullTerminatedSlice<c_char>>(path: &CStr, argv: A) -> Result<Void> {
+    argv.borrow_null_terminated_slice(|args_p| {
+        unsafe {
+            libc::execv(path.as_ptr(), args_p.as_ptr())
+        };
 
-    let mut args_p: Vec<*const c_char> = args.iter().map(|s| s.as_ptr()).collect();
-    args_p.push(ptr::null());
-    args_p
+        Err(Error::Sys(Errno::last()))
+    })
 }
 
 #[inline]
-pub fn execv(path: &CString, argv: &[CString]) -> Result<Void> {
-    let args_p = to_exec_array(argv);
+pub fn execve<A: BorrowNullTerminatedSlice<c_char>, E: BorrowNullTerminatedSlice<c_char>>(path: &CStr, args: A, env: E) -> Result<Void> {
+    args.borrow_null_terminated_slice(|args_p| {
+        env.borrow_null_terminated_slice(|env_p| {
+            unsafe {
+                libc::execve(path.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
+            };
 
-    unsafe {
-        libc::execv(path.as_ptr(), args_p.as_ptr())
-    };
-
-    Err(Error::Sys(Errno::last()))
+            Err(Error::Sys(Errno::last()))
+        })
+    })
 }
 
 #[inline]
-pub fn execve(path: &CString, args: &[CString], env: &[CString]) -> Result<Void> {
-    let args_p = to_exec_array(args);
-    let env_p = to_exec_array(env);
+pub fn execvp<A: BorrowNullTerminatedSlice<c_char>>(filename: &CStr, args: A) -> Result<Void> {
+    args.borrow_null_terminated_slice(|args_p| {
+        unsafe {
+            libc::execvp(filename.as_ptr(), args_p.as_ptr())
+        };
 
-    unsafe {
-        libc::execve(path.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
-    };
-
-    Err(Error::Sys(Errno::last()))
-}
-
-#[inline]
-pub fn execvp(filename: &CString, args: &[CString]) -> Result<Void> {
-    let args_p = to_exec_array(args);
-
-    unsafe {
-        libc::execvp(filename.as_ptr(), args_p.as_ptr())
-    };
-
-    Err(Error::Sys(Errno::last()))
+        Err(Error::Sys(Errno::last()))
+    })
 }
 
 pub fn daemon(nochdir: bool, noclose: bool) -> Result<()> {
@@ -379,9 +372,6 @@ mod linux {
     use sys::syscall::{syscall, SYSPIVOTROOT};
     use {Errno, Result, NixPath};
 
-    #[cfg(feature = "execvpe")]
-    use std::ffi::CString;
-
     pub fn pivot_root<P1: ?Sized + NixPath, P2: ?Sized + NixPath>(
             new_root: &P1, put_old: &P2) -> Result<()> {
         let res = try!(try!(new_root.with_nix_path(|new_root| {
@@ -395,7 +385,6 @@ mod linux {
         Errno::result(res).map(drop)
     }
 
-    #[inline]
     #[cfg(feature = "execvpe")]
     pub fn execvpe(filename: &CString, args: &[CString], env: &[CString]) -> Result<()> {
         use std::ptr;

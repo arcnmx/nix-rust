@@ -33,6 +33,8 @@ pub mod libc {
 pub use libc::{c_int, c_void};
 pub use errno::Errno;
 
+pub mod null_terminated;
+
 pub mod errno;
 pub mod features;
 pub mod fcntl;
