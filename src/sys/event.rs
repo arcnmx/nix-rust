@@ -114,7 +114,7 @@ pub enum EventFilter {
 
 #[cfg(not(any(target_os = "dragonfly", target_os = "netbsd")))]
 bitflags!(
-    flags EventFlag: u16 {
+    pub pub flags EventFlag: u16 {
         const EV_ADD       = 0x0001,
         const EV_DELETE    = 0x0002,
         const EV_ENABLE    = 0x0004,
@@ -133,7 +133,7 @@ bitflags!(
 
 #[cfg(target_os = "dragonfly")]
 bitflags!(
-    flags EventFlag: u16 {
+    pub flags EventFlag: u16 {
         const EV_ADD       = 0x0001,
         const EV_DELETE    = 0x0002,
         const EV_ENABLE    = 0x0004,
@@ -151,7 +151,7 @@ bitflags!(
 
 #[cfg(target_os = "netbsd")]
 bitflags!(
-    flags EventFlag: u32 {
+    pub flags EventFlag: u32 {
         const EV_ADD       = 0x0001,
         const EV_DELETE    = 0x0002,
         const EV_ENABLE    = 0x0004,
@@ -168,7 +168,7 @@ bitflags!(
 
 #[cfg(not(any(target_os = "dragonfly", target_os="netbsd")))]
 bitflags!(
-    flags FilterFlag: u32 {
+    pub flags FilterFlag: u32 {
         const NOTE_TRIGGER                         = 0x01000000,
         const NOTE_FFNOP                           = 0x00000000,
         const NOTE_FFAND                           = 0x40000000,
@@ -216,7 +216,7 @@ bitflags!(
 
 #[cfg(target_os = "dragonfly")]
 bitflags!(
-    flags FilterFlag: u32 {
+    pub flags FilterFlag: u32 {
         const NOTE_TRIGGER                         = 0x01000000,
         const NOTE_FFNOP                           = 0x00000000,
         const NOTE_FFAND                           = 0x40000000,
@@ -246,7 +246,7 @@ bitflags!(
 
 #[cfg(target_os = "netbsd")]
 bitflags!(
-    flags FilterFlag: u32 {
+    pub flags FilterFlag: u32 {
         const NOTE_LOWAT                           = 0x00000001,
         const NOTE_DELETE                          = 0x00000001,
         const NOTE_WRITE                           = 0x00000002,

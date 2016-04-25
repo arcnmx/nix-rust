@@ -14,7 +14,7 @@ mod ffi {
 #[cfg(not(any(target_os = "linux",
               target_os = "android")))]
 bitflags!(
-    flags WaitPidFlag: c_int {
+    pub flags WaitPidFlag: c_int {
         const WNOHANG     = 0x00000001,
     }
 );
@@ -22,7 +22,7 @@ bitflags!(
 #[cfg(any(target_os = "linux",
           target_os = "android"))]
 bitflags!(
-    flags WaitPidFlag: c_int {
+    pub flags WaitPidFlag: c_int {
         const WNOHANG     = 0x00000001,
         const WUNTRACED   = 0x00000002,
         const WEXITED     = 0x00000004,

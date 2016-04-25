@@ -3,7 +3,7 @@ use std::os::unix::io::RawFd;
 use {Errno, Result};
 
 bitflags!(
-    flags EventFdFlag: libc::c_int {
+    pub flags EventFdFlag: libc::c_int {
         const EFD_CLOEXEC   = 0o2000000, // Since Linux 2.6.27
         const EFD_NONBLOCK  = 0o0004000, // Since Linux 2.6.27
         const EFD_SEMAPHORE = 0o0000001, // Since Linux 2.6.30

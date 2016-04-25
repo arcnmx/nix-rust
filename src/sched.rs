@@ -6,7 +6,7 @@ use {Errno, Result};
 // For some functions taking with a parameter of type CloneFlags,
 // only a subset of these flags have an effect.
 bitflags!{
-    flags CloneFlags: c_int {
+    pub flags CloneFlags: c_int {
         const CLONE_VM             = libc::CLONE_VM,
         const CLONE_FS             = libc::CLONE_FS,
         const CLONE_FILES          = libc::CLONE_FILES,

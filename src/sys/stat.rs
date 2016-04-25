@@ -17,7 +17,7 @@ mod ffi {
 }
 
 bitflags!(
-    flags SFlag: mode_t {
+    pub flags SFlag: mode_t {
         const S_IFREG  = 0o100000,
         const S_IFCHR  = 0o020000,
         const S_IFBLK  = 0o060000,
@@ -27,7 +27,7 @@ bitflags!(
 );
 
 bitflags! {
-    flags Mode: mode_t {
+    pub flags Mode: mode_t {
         const S_IRWXU = 0o0700,
         const S_IRUSR = 0o0400,
         const S_IWUSR = 0o0200,

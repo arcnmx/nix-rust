@@ -24,7 +24,7 @@ signalfd = []
 
 [dependencies]
 libc     = "0.2.8"
-bitflags = "0.4"
+bitflags = "0.5"
 cfg-if = "0.1.0"
 
 [build-dependencies]

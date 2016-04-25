@@ -18,7 +18,7 @@ mod consts {
     use libc::c_int;
 
     bitflags!(
-        flags MQ_OFlag: c_int {
+        pub flags MQ_OFlag: c_int {
             const O_RDONLY    = 0o00000000,
             const O_WRONLY    = 0o00000001,
             const O_RDWR      = 0o00000002,
@@ -30,7 +30,7 @@ mod consts {
     );
 
     bitflags!(
-        flags FdFlag: c_int {
+        pub flags FdFlag: c_int {
             const FD_CLOEXEC = 1
         }
     );

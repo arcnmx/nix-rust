@@ -45,7 +45,7 @@ pub const SIGEMT: libc::c_int = 7;
 pub const NSIG: libc::c_int = 32;
 
 bitflags!{
-    flags SaFlags: libc::c_int {
+    pub flags SaFlags: libc::c_int {
         const SA_NOCLDSTOP = libc::SA_NOCLDSTOP,
         const SA_NOCLDWAIT = libc::SA_NOCLDWAIT,
         const SA_NODEFER   = libc::SA_NODEFER,
@@ -57,7 +57,7 @@ bitflags!{
 }
 
 bitflags!{
-    flags SigFlags: libc::c_int {
+    pub flags SigFlags: libc::c_int {
         const SIG_BLOCK   = libc::SIG_BLOCK,
         const SIG_UNBLOCK = libc::SIG_UNBLOCK,
         const SIG_SETMASK = libc::SIG_SETMASK,

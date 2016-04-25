@@ -88,7 +88,7 @@ mod os {
 
     // Flags for send/recv and their relatives
     bitflags!{
-        flags MsgFlags : libc::c_int {
+        pub flags MsgFlags : libc::c_int {
             const MSG_OOB      = 0x0001,
             const MSG_PEEK     = 0x0002,
             const MSG_CTRUNC   = 0x0008,
@@ -222,7 +222,7 @@ mod os {
 
     // Flags for send/recv and their relatives
     bitflags!{
-        flags MsgFlags : libc::c_int {
+        pub flags MsgFlags : libc::c_int {
             const MSG_OOB      = 0x01,
             const MSG_PEEK     = 0x02,
             const MSG_EOR      = 0x08,
@@ -308,7 +308,7 @@ mod os {
 
     // Flags for send/recv and their relatives
     bitflags!{
-        flags MsgFlags : libc::c_int {
+        pub flags MsgFlags : libc::c_int {
             const MSG_OOB      = 0x01,
             const MSG_PEEK     = 0x02,
             const MSG_DONTWAIT = 0x80,

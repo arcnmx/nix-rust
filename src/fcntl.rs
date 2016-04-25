@@ -217,7 +217,7 @@ mod consts {
     use libc::{self, c_int, c_uint};
 
     bitflags! {
-        flags SpliceFFlags: c_uint {
+        pub flags SpliceFFlags: c_uint {
             const SPLICE_F_MOVE = libc::SPLICE_F_MOVE,
             const SPLICE_F_NONBLOCK = libc::SPLICE_F_NONBLOCK,
             const SPLICE_F_MORE = libc::SPLICE_F_MORE,
@@ -226,7 +226,7 @@ mod consts {
     }
 
     bitflags!(
-        flags OFlag: c_int {
+        pub flags OFlag: c_int {
             const O_ACCMODE   = 0o00000003,
             const O_RDONLY    = 0o00000000,
             const O_WRONLY    = 0o00000001,
@@ -252,13 +252,13 @@ mod consts {
     );
 
     bitflags!(
-        flags FdFlag: c_int {
+        pub flags FdFlag: c_int {
             const FD_CLOEXEC = 1
         }
     );
 
     bitflags!(
-        flags SealFlag: c_int {
+        pub flags SealFlag: c_int {
             const F_SEAL_SEAL = 1,
             const F_SEAL_SHRINK = 2,
             const F_SEAL_GROW = 4,
@@ -273,7 +273,7 @@ mod consts {
     use libc::c_int;
 
     bitflags!(
-        flags OFlag: c_int {
+        pub flags OFlag: c_int {
             const O_ACCMODE   = 0x0000003,
             const O_RDONLY    = 0x0000000,
             const O_WRONLY    = 0x0000001,
@@ -295,7 +295,7 @@ mod consts {
     );
 
     bitflags!(
-        flags FdFlag: c_int {
+        pub flags FdFlag: c_int {
             const FD_CLOEXEC = 1
         }
     );
@@ -306,7 +306,7 @@ mod consts {
     use libc::c_int;
 
     bitflags!(
-        flags OFlag: c_int {
+        pub flags OFlag: c_int {
             const O_ACCMODE   = 0x0000003,
             const O_RDONLY    = 0x0000000,
             const O_WRONLY    = 0x0000001,
@@ -332,7 +332,7 @@ mod consts {
     );
 
     bitflags!(
-        flags FdFlag: c_int {
+        pub flags FdFlag: c_int {
             const FD_CLOEXEC = 1
         }
     );
@@ -343,7 +343,7 @@ mod consts {
     use libc::c_int;
 
     bitflags!(
-        flags OFlag: c_int {
+        pub flags OFlag: c_int {
             const O_ACCMODE   = 0x0000003,
             const O_RDONLY    = 0x0000000,
             const O_WRONLY    = 0x0000001,
@@ -373,7 +373,7 @@ mod consts {
     );
 
     bitflags!(
-        flags FdFlag: c_int {
+        pub flags FdFlag: c_int {
             const FD_CLOEXEC = 1
         }
     );
@@ -384,7 +384,7 @@ mod consts {
     use libc::c_int;
 
     bitflags!(
-        flags OFlag: c_int {
+        pub flags OFlag: c_int {
             const O_ACCMODE   = 0x0000003,
             const O_RDONLY    = 0x0000000,
             const O_WRONLY    = 0x0000001,
@@ -408,7 +408,7 @@ mod consts {
     );
 
     bitflags!(
-        flags FdFlag: c_int {
+        pub flags FdFlag: c_int {
             const FD_CLOEXEC = 1
         }
     );

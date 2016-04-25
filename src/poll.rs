@@ -21,7 +21,7 @@ mod ffi {
         use libc::{c_short, c_ulong};
 
         bitflags! {
-            flags EventFlags: c_short {
+            pub flags EventFlags: c_short {
                 const POLLIN     = 0x001,
                 const POLLPRI    = 0x002,
                 const POLLOUT    = 0x004,
@@ -43,7 +43,7 @@ mod ffi {
         use libc::{c_short, c_uint};
 
         bitflags! {
-            flags EventFlags: c_short {
+            pub flags EventFlags: c_short {
                 const POLLIN     = 0x0001,
                 const POLLPRI    = 0x0002,
                 const POLLOUT    = 0x0004,
