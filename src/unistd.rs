@@ -1,7 +1,7 @@
 //! Standard symbolic constants and types
 //!
 use {Errno, Error, Result, NixPath};
-use null_terminated::BorrowNullTerminatedSlice;
+use null_terminated::{IntoRef, NullTerminatedSlice};
 use fcntl::{fcntl, OFlag, O_NONBLOCK, O_CLOEXEC, FD_CLOEXEC};
 use fcntl::FcntlArg::{F_SETFD, F_SETFL};
 use libc::{self, c_char, c_void, c_int, c_uint, size_t, pid_t, off_t, uid_t, gid_t};
@@ -123,38 +123,37 @@ pub fn chown<P: ?Sized + NixPath>(path: &P, owner: Option<uid_t>, group: Option<
 }
 
 #[inline]
-pub fn execv<A: BorrowNullTerminatedSlice<c_char>>(path: &CStr, argv: A) -> Result<Void> {
-    argv.borrow_null_terminated_slice(|args_p| {
-        unsafe {
-            libc::execv(path.as_ptr(), args_p.as_ptr())
-        };
+pub fn execv<'a, A: IntoRef<'a, NullTerminatedSlice<&'a c_char>>>(path: &CStr, argv: A) -> Result<Void> {
+    let argv = argv.into_ref();
 
-        Err(Error::Sys(Errno::last()))
-    })
+    unsafe {
+        libc::execv(path.as_ptr(), argv.as_ref().as_ptr())
+    };
+
+    Err(Error::Sys(Errno::last()))
 }
 
 #[inline]
-pub fn execve<A: BorrowNullTerminatedSlice<c_char>, E: BorrowNullTerminatedSlice<c_char>>(path: &CStr, args: A, env: E) -> Result<Void> {
-    args.borrow_null_terminated_slice(|args_p| {
-        env.borrow_null_terminated_slice(|env_p| {
-            unsafe {
-                libc::execve(path.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
-            };
+pub fn execve<'a, 'e, A: IntoRef<'a, NullTerminatedSlice<&'a c_char>>, E: IntoRef<'e, NullTerminatedSlice<&'e c_char>>>(path: &CStr, args: A, env: E) -> Result<Void> {
+    let args = args.into_ref();
+    let env = env.into_ref();
 
-            Err(Error::Sys(Errno::last()))
-        })
-    })
+    unsafe {
+        libc::execve(path.as_ptr(), args.as_ref().as_ptr(), env.as_ref().as_ptr())
+    };
+
+    Err(Error::Sys(Errno::last()))
 }
 
 #[inline]
-pub fn execvp<A: BorrowNullTerminatedSlice<c_char>>(filename: &CStr, args: A) -> Result<Void> {
-    args.borrow_null_terminated_slice(|args_p| {
-        unsafe {
-            libc::execvp(filename.as_ptr(), args_p.as_ptr())
-        };
+pub fn execvp<'a, A: IntoRef<'a, NullTerminatedSlice<&'a c_char>>>(filename: &CStr, args: A) -> Result<Void> {
+    let args = args.into_ref();
 
-        Err(Error::Sys(Errno::last()))
-    })
+    unsafe {
+        libc::execvp(filename.as_ptr(), args.as_ref().as_ptr())
+    };
+
+    Err(Error::Sys(Errno::last()))
 }
 
 pub fn daemon(nochdir: bool, noclose: bool) -> Result<()> {

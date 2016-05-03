@@ -4,6 +4,12 @@ use std::mem::transmute;
 use std::iter;
 use libc::c_char;
 
+pub trait IntoRef<'a, T: ?Sized> {
+    type Target: 'a + AsRef<T>;
+
+    fn into_ref(self) -> Self::Target;
+}
+
 pub struct NullTerminatedSlice<T> {
     inner: [Option<T>],
 }
@@ -55,29 +61,80 @@ impl<T> DerefMut for NullTerminatedSlice<T> {
     }
 }
 
-pub trait BorrowNullTerminatedSlice<T> {
-    fn borrow_null_terminated_slice<R, F: FnOnce(&NullTerminatedSlice<&T>) -> R>(self, f: F) -> R;
+impl<T> AsRef<NullTerminatedSlice<T>> for NullTerminatedSlice<T> {
+    fn as_ref(&self) -> &Self {
+        self
+    }
 }
 
-impl<T: AsRef<CStr>, I: IntoIterator<Item=T>> BorrowNullTerminatedSlice<c_char> for I {
-    fn borrow_null_terminated_slice<R, F: FnOnce(&NullTerminatedSlice<&c_char>) -> R>(self, f: F) -> R {
+pub struct NullTerminatedVec<T> {
+    inner: Vec<Option<T>>,
+}
+
+impl<T> NullTerminatedVec<T> {
+    pub fn from_vec(vec: Vec<Option<T>>) -> Option<Self> {
+        if vec.last().map(Option::is_none).unwrap_or(false) {
+            Some(unsafe { Self::from_vec_unchecked(vec) })
+        } else {
+            None
+        }
+    }
+
+    pub unsafe fn from_vec_unchecked(vec: Vec<Option<T>>) -> Self {
+        NullTerminatedVec {
+            inner: vec,
+        }
+    }
+}
+
+impl<T> Deref for NullTerminatedVec<T> {
+    type Target = NullTerminatedSlice<T>;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            NullTerminatedSlice::from_slice_unchecked(&self.inner)
+        }
+    }
+}
+
+impl<T> DerefMut for NullTerminatedVec<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        unsafe {
+            NullTerminatedSlice::from_slice_mut_unchecked(&mut self.inner)
+        }
+    }
+}
+
+impl<T> AsRef<NullTerminatedSlice<T>> for NullTerminatedVec<T> {
+    fn as_ref(&self) -> &NullTerminatedSlice<T> {
+        self
+    }
+}
+
+impl<'a, T: 'a> IntoRef<'a, NullTerminatedSlice<&'a T>> for &'a NullTerminatedSlice<&'a T> {
+    type Target = &'a NullTerminatedSlice<&'a T>;
+
+    fn into_ref(self) -> Self::Target {
+        self
+    }
+}
+
+impl<'a, T: AsRef<CStr> + 'a, I: IntoIterator<Item=T>> IntoRef<'a, NullTerminatedSlice<&'a c_char>> for I {
+    type Target = NullTerminatedVec<&'a c_char>;
+
+    fn into_ref(self) -> Self::Target {
         fn cstr_char<'a, S: AsRef<CStr> + 'a>(s: S) -> &'a c_char {
             unsafe {
                 &*s.as_ref().as_ptr()
             }
         }
 
-        let values: Vec<_> = self.into_iter()
+        let terminated = self.into_iter()
             .map(cstr_char)
             .map(Some).chain(iter::once(None)).collect();
-        let terminated = unsafe { NullTerminatedSlice::from_slice_unchecked(&values[..]) };
 
-        f(terminated)
-    }
-}
-
-impl<'a, T: 'a> BorrowNullTerminatedSlice<T> for &'a NullTerminatedSlice<&'a T> {
-    fn borrow_null_terminated_slice<R, F: FnOnce(&NullTerminatedSlice<&T>) -> R>(self, f: F) -> R {
-        f(self)
+        unsafe {
+            NullTerminatedVec::from_vec_unchecked(terminated)
+        }
     }
 }
